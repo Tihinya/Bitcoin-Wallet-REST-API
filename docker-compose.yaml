@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  database:
+    image: postgres:13.9-alpine
+    container_name: psql_container
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=secret
+
+  pg-admin:
+    image: dpage/pgadmin4:6.0
+    container_name: pg-admin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@email.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_LISTEN_PORT=5050
+    ports:
+      - "5050:5050"
