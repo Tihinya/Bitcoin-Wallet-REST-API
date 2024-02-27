@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 )
@@ -17,6 +18,7 @@ func ParseConfig(fileName string) error {
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
 	byteValue, err := io.ReadAll(file)
 	if err != nil {
@@ -25,7 +27,7 @@ func ParseConfig(fileName string) error {
 
 	err = json.Unmarshal(byteValue, &ConfigFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to unmarshal JSON: %v", err)
 	}
 
 	return nil

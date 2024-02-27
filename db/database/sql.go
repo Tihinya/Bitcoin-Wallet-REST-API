@@ -4,21 +4,15 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
+	"strconv"
 	"time"
-
-	_ "github.com/lib/pq"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-)
-
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "secret"
-	dbname   = "postgres"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 var db *sql.DB
@@ -30,8 +24,16 @@ type Transaction struct {
 	CreatedAt     time.Time `json:"create_at"`
 }
 
-func openDatabase() *sql.DB {
-	fmt.Println("open db")
+func OpenDatabase() (*sql.DB, error) {
+	godotenv.Load()
+	host := os.Getenv("DB_HOST")
+	port, err := strconv.Atoi(os.Getenv("DB_PORT"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert DB_PORT to int: %v", err)
+	}
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
 
 	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
@@ -39,33 +41,42 @@ func openDatabase() *sql.DB {
 
 	db, err := sql.Open("postgres", postgresInfo)
 	if err != nil {
-		log.Fatalf("Failed to open database: %v", err)
+		return nil, fmt.Errorf("failed to open database: %v", err)
 	}
 
-	return db
+	return db, nil
 }
 
-func makeMigration() {
+func MigrateDatabase(db *sql.DB) error {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
-		log.Println(err)
+		return fmt.Errorf("failed to create migration driver: %v", err)
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
 		"file://db/migrations",
 		"postgres", driver)
-
 	if err != nil {
-		log.Println(err)
+		return fmt.Errorf("failed to create migration instance: %v", err)
 	}
 
-	err = m.Up()
-	if err != migrate.ErrNoChange && err != nil {
-		log.Fatalln(err)
+	if err := m.Up(); err != migrate.ErrNoChange && err != nil {
+		return fmt.Errorf("failed to apply migrations: %v", err)
 	}
+
+	return nil
 }
 
 func init() {
-	db = openDatabase()
-	makeMigration()
+	var err error
+	db, err = OpenDatabase()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	defer db.Close()
+
+	if err := MigrateDatabase(db); err != nil {
+		log.Fatalln(err)
+	}
 }

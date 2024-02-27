@@ -13,13 +13,14 @@ func CreateTransaction(transferAmount float64, spent bool) error {
 
 	sqlStmt, err := db.PrepareContext(ctx, `INSERT INTO transactions(amount, spent, created_at) VALUES($1, $2, LOCALTIMESTAMP)`)
 	if err != nil {
-		return err
+		return fmt.Errorf("error preparing SQL statement: %w", err)
 	}
 
 	_, err = sqlStmt.Exec(transferAmount, spent)
 	if err != nil {
-		return err
+		return fmt.Errorf("error executing SQL statement: %w", err)
 	}
+
 	return nil
 }
 
@@ -32,10 +33,12 @@ func GetCurrentBTCBalance() (float64, error) {
 	var totalAmount float64
 	err := db.QueryRowContext(ctx, query).Scan(&totalAmount)
 	if err != nil && err != sql.ErrNoRows {
-		return 0, err
+		return 0, fmt.Errorf("error querying database: %w", err)
 	}
+
 	return totalAmount, nil
 }
+
 func GetAllTransactions() ([]Transaction, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -44,7 +47,7 @@ func GetAllTransactions() ([]Transaction, error) {
 
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error querying database: %w", err)
 	}
 	defer rows.Close()
 
@@ -54,7 +57,7 @@ func GetAllTransactions() ([]Transaction, error) {
 		var transaction Transaction
 		err := rows.Scan(&transaction.TransactionId, &transaction.Amount, &transaction.Spent, &transaction.CreatedAt)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error scanning rows: %w", err)
 		}
 
 		transactions = append(transactions, transaction)
@@ -71,7 +74,7 @@ func GetAllUnspentTransactions() ([]Transaction, error) {
 
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error querying database: %w", err)
 	}
 	defer rows.Close()
 
@@ -81,7 +84,7 @@ func GetAllUnspentTransactions() ([]Transaction, error) {
 		var transaction Transaction
 		err := rows.Scan(&transaction.TransactionId, &transaction.Amount)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error scanning rows: %w", err)
 		}
 
 		transactions = append(transactions, transaction)
@@ -94,7 +97,7 @@ func MarkTransactionAsSpent(transactionID string) error {
 	query := "UPDATE transactions SET spent = true WHERE transaction_id = $1"
 	_, err := db.Exec(query, transactionID)
 	if err != nil {
-		return fmt.Errorf("Error updating spent status: %v", err)
+		return fmt.Errorf("error updating spent status: %w", err)
 	}
 
 	return nil

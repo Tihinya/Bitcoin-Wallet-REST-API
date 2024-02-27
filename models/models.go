@@ -7,6 +7,7 @@ import (
 type Response struct {
 	Status  string `json:"status"`
 	Message string `json:"message,omitempty"`
+	Object  []any  `json:"object,omitempty"`
 }
 
 type Transaction struct {

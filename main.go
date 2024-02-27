@@ -11,7 +11,6 @@ import (
 
 func main() {
 	config.ParseConfig("./dev_config.json")
-
 	r := mux.NewRouter()
 	r.HandleFunc("/transactions/get", controllers.GetListTransactions).Methods("GET")
 	r.HandleFunc("/balance/get", controllers.GetCurrentBalance).Methods("GET")
