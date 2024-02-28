@@ -1,19 +1,27 @@
 package sql
 
 import (
+	"bitcoin-wallet/config"
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
-	"strconv"
 	"time"
 
+	"github.com/caarlos0/env"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
+
+// const (
+// 	host     = "localhost"
+// 	port     = 5432
+// 	user     = "postgres"
+// 	password = "secret"
+// 	dbname   = "postgres"
+// )
 
 var db *sql.DB
 
@@ -25,19 +33,8 @@ type Transaction struct {
 }
 
 func OpenDatabase() (*sql.DB, error) {
-	godotenv.Load()
-	host := os.Getenv("DB_HOST")
-	port, err := strconv.Atoi(os.Getenv("DB_PORT"))
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert DB_PORT to int: %v", err)
-	}
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
-
-	postgresInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+	postgresInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		config.EnvConfig.Host, config.EnvConfig.Port, config.EnvConfig.User, config.EnvConfig.Password, config.EnvConfig.DbName)
 
 	db, err := sql.Open("postgres", postgresInfo)
 	if err != nil {
@@ -68,13 +65,21 @@ func MigrateDatabase(db *sql.DB) error {
 }
 
 func init() {
+
 	var err error
+	err = godotenv.Load(".env")
+	if err != nil {
+		log.Println(err)
+	}
+	err = env.Parse(&config.EnvConfig)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(config.EnvConfig)
 	db, err = OpenDatabase()
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	defer db.Close()
 
 	if err := MigrateDatabase(db); err != nil {
 		log.Fatalln(err)

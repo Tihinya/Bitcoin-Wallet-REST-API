@@ -16,17 +16,47 @@ Simple Bitcoin Wallet API that facilitates transactions and provides essential f
 
 ## 🧑‍💻 Running
 
-    docker compose up --build
+Change .example.env to .env and add:
+
+    DB_HOST="localhost"
+    DB_PORT="5432"
+    DB_USER="postgres"
+    DB_PASSWORD="secret"
+    DB_NAME="postgres""
+
+After run:
+
+    docker compose up -d
 
     go run main.go
 
+For check use PostMan:
 
-## 🪴 Project Test
+For transfer
 
-<div >
- 
-  <img src="https://github.com/BrondoL/e-wallet-api/assets/86482047/a4bf17ed-3307-4349-a340-1764537a80f1" width="1238" style="border-radius:2.5%;margin-bottom: 15px">
-</div>
+POST http://localhost:8080/transfer
+
+Json:
+
+    {
+    "amount": 5
+    }
+
+For Get amount
+
+GET http://localhost:8080/balance/get
+
+For top-up:
+
+POST http://localhost:8080/top-up
+
+Json:
+
+    {
+    "amount": 10
+    }
+
+
 
 ## Implementation
 
@@ -53,4 +83,4 @@ Simple Bitcoin Wallet API that facilitates transactions and provides essential f
 
 ## 🤝 Authors
 
-- **Stepan Tihinya** (Discord: StepanTI)
+- **Stepan Tihinya** 
