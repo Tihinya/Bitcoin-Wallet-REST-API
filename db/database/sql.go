@@ -15,14 +15,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// const (
-// 	host     = "localhost"
-// 	port     = 5432
-// 	user     = "postgres"
-// 	password = "secret"
-// 	dbname   = "postgres"
-// )
-
 var db *sql.DB
 
 type Transaction struct {
@@ -45,7 +37,7 @@ func OpenDatabase() (*sql.DB, error) {
 }
 
 func MigrateDatabase(db *sql.DB) error {
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	driver, err := postgres.WithInstance(db, &postgres.Config{DatabaseName: config.EnvConfig.DbName, MigrationsTable: postgres.DefaultMigrationsTable, MultiStatementEnabled: false, MultiStatementMaxSize: postgres.DefaultMultiStatementMaxSize})
 	if err != nil {
 		return fmt.Errorf("failed to create migration driver: %v", err)
 	}
@@ -65,7 +57,6 @@ func MigrateDatabase(db *sql.DB) error {
 }
 
 func init() {
-
 	var err error
 	err = godotenv.Load(".env")
 	if err != nil {
@@ -81,7 +72,7 @@ func init() {
 		log.Fatalln(err)
 	}
 
-	if err := MigrateDatabase(db); err != nil {
-		log.Fatalln(err)
-	}
+	// if err := MigrateDatabase(db); err != nil {
+	// 	log.Fatalln(err)
+	// }
 }

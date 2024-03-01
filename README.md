@@ -16,7 +16,7 @@ Simple Bitcoin Wallet API that facilitates transactions and provides essential f
 
 ## 🧑‍💻 Running
 
-Change .example.env to .env and add:
+Rename .example.env to .env and add:
 
     DB_HOST="localhost"
     DB_PORT="5432"
@@ -28,11 +28,10 @@ After run:
 
     docker compose up -d
 
-    go run main.go
+Use PostMan for testing
+(Use tab "Body" and radiobutton "raw")
 
-For check use PostMan:
-
-For transfer
+For transfer:
 
 POST http://localhost:8080/transfer
 
@@ -41,10 +40,12 @@ Json:
     {
     "amount": 5
     }
+    
 
-For Get amount
+For Get amount:
 
 GET http://localhost:8080/balance/get
+
 
 For top-up:
 
